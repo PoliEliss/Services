@@ -3,11 +3,12 @@ package com.rorono.services
 import android.app.NotificationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.core.content.ContextCompat
 import com.rorono.services.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-   // private var id = 0
+    // private var id = 0
 
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
@@ -20,7 +21,10 @@ class MainActivity : AppCompatActivity() {
             startService(MyService.newIntent(this))
         }
         binding.foregroundService.setOnClickListener {
-           MyForegroundService.startService(this,"ForegroundService is Running")
+            MyForegroundService.startService(this, "ForegroundService is Running")
+        }
+        binding.intentService.setOnClickListener {
+            ContextCompat.startForegroundService(this, MyIntentService.newIntent(this))
         }
     }
 
