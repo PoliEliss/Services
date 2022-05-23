@@ -5,8 +5,11 @@ import android.app.job.JobParameters
 import android.app.job.JobService
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
+import android.os.PersistableBundle
 import android.util.Log
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.*
 
 class MyJobService : JobService() {
@@ -19,7 +22,6 @@ class MyJobService : JobService() {
     }
 
 
-
     override fun onDestroy() {
         coroutineScope.cancel()
         super.onDestroy()
@@ -27,21 +29,26 @@ class MyJobService : JobService() {
     }
 
 
-
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onStartJob(p0: JobParameters?): Boolean {
-        Log.d("TEST", "onStartJob")
         coroutineScope.launch {
-            for (i in 0 until 100) {
-                delay(1000)
-                log("Timer $i")
+            var workItem = p0?.dequeueWork()
+            while (workItem != null) {
+                val page = workItem.intent.getIntExtra(PAGE, 0)
+                for (i in 0 until 5) {
+                    delay(1000)
+                    log("Timer $i $page")
+                }
+                p0?.completeWork(workItem)
+                workItem = p0?.dequeueWork()
             }
-            jobFinished(p0,true)
+            jobFinished(p0, false)
         }
-       return true
+        return true
     }
 
     override fun onStopJob(p0: JobParameters?): Boolean {
-       log("onStopJob")
+        log("onStopJob")
         return true
     }
 
@@ -49,5 +56,14 @@ class MyJobService : JobService() {
         Log.d("TEST", "Myservice:${message}")
     }
 
+    companion object {
+        const val JOB_ID = 61
+        private const val PAGE = "page"
 
+        fun newIntent(page: Int): Intent {
+            return Intent().apply {
+                putExtra(PAGE, page)
+            }
+        }
+    }
 }
